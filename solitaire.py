@@ -28,13 +28,13 @@ def numbers_to_text(numbers):
 		text += alpha_numbers[i - 1]
 	return text
 	
-def create_deck():
-	deck = [i for i in range(1, 29)]
+def create_deck(cards_in_deck):
+	deck = [i for i in range(1, cards_in_deck + 1)]
 	counter = 0
 	while counter < 256:
 		counter +=1
-		point_a = random.randrange(28)
-		point_b = random.randrange(28)
+		point_a = random.randrange(cards_in_deck)
+		point_b = random.randrange(cards_in_deck)
 		deck[point_a], deck[point_b] = deck[point_b], deck[point_a]
 	return deck
 	
@@ -49,7 +49,7 @@ def copy_deck(original):
 
 
 def first_joker_down_one(deck):
-	joker_index = deck.index(27)
+	joker_index = deck.index(joker_one)
 	if joker_index != len(deck) - 1:
 		swap_index = (joker_index + 1) % len(deck)
 		deck[joker_index], deck[swap_index] = deck[swap_index], deck[joker_index]
@@ -66,7 +66,7 @@ def first_joker_down_one(deck):
 	return deck
 
 def second_joker_down_two(deck):
-	joker_index = deck.index(28)
+	joker_index = deck.index(joker_two)
 	if joker_index != (len(deck) - 1) and joker_index != (len(deck) - 2):
 		temp = deck[joker_index]
 		deck[joker_index] = deck[joker_index + 1]
@@ -93,7 +93,7 @@ def second_joker_down_two(deck):
 def three_way_cut(deck):
 	flag = False
 	for i in deck:
-		if i == 27 or i == 28:
+		if i == joker_one or i == joker_two:
 			if flag == False:
 				first_joker_index = deck.index(i)
 				flag = True
@@ -115,7 +115,10 @@ def three_way_cut(deck):
 	return temp_deck
 	
 def top_to_bottom_cut(deck):
-	value = deck[len(deck) - 1]
+	if deck[len(deck) - 1] == len(deck):
+		value = len(deck) - 1
+	else:
+		value = deck[len(deck) - 1]
 	top_slice = deck[:value:1]
 	temp_deck = deck[value:len(deck) - 1:1]
 	for i in top_slice:
@@ -147,20 +150,22 @@ def encrypt_message(message, keystream):
 def decrypt_message(message, keystream):
 	decrypted_message = []
 	for i in range(len(message)):
-		if (message[i] - keystream[i]) > 0:
-			decrypted_message.append(message[i] - keystream[i])
-		else:
-			decrypted_message.append(26 - abs(message[i] - keystream[i]))
+		number = message[i] - keystream[i]
+		number_two = abs(((number // 26) * 26) - number)
+		decrypted_message.append(number_two)
 	return decrypted_message
 	
 	
 		
-message = "Do not let this fall into enemy hands."
+message = input("Please enter a message to encrypt: ")
 prepared_message = prep_message(message)
 message_numbers = text_to_numbers(prepared_message)
 print("Message to encrypt:\n", prepared_message)
 print("Message converted to numbers:\n", message_numbers)
-deck = create_deck()
+cards_in_deck = int(input("How many cards in your deck?: "))
+deck = create_deck(cards_in_deck)
+joker_one = len(deck) - 1
+joker_two = len(deck)
 print("Deck:\n", deck)
 original_deck_copy = copy_deck(deck)
 keystream = generate_keystream(deck)
